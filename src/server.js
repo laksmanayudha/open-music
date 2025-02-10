@@ -13,6 +13,16 @@ const Hapi = require('@hapi/hapi');
     },
   });
 
+  // register app plugin
+  await server.register([
+    {
+      plugin: null,
+      options: {
+        service: null,
+      },
+    },
+  ]);
+
   await server.start();
   console.log(`Server running on ${server.info.uri}`);
 })();
