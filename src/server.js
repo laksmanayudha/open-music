@@ -1,6 +1,8 @@
 require('dotenv').config();
 const process = require('process');
 const Hapi = require('@hapi/hapi');
+const ClientError = require('./exceptions/ClientError');
+const ServerError = require('./exceptions/ServerError');
 
 // albums
 const albums = require('./api/albums');
@@ -40,6 +42,28 @@ const SongValidator = require('./validator/songs');
       },
     },
   ]);
+
+  // error handling
+  server.ext('onPreResponse', (request, h) => {
+    const { response } = request;
+
+    if (response instanceof Error) {
+      if (response instanceof ClientError) {
+        return h.response({
+          status: 'fail',
+          message: response.message,
+        }).code(response.statusCode);
+      }
+
+      const serverError = new ServerError();
+      return h.response({
+        status: 'error',
+        message: serverError.message,
+      }).code(serverError.statusCode);
+    }
+
+    return h.continue;
+  });
 
   await server.start();
   console.log(`Server running on ${server.info.uri}`);
