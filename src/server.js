@@ -13,6 +13,7 @@ const AlbumValidaor = require('./validator/albums');
 const songs = require('./api/songs');
 const SongService = require('./services/postgres/SongService');
 const SongValidator = require('./validator/songs');
+const BaseHandler = require('./api/BaseHandler');
 
 (async () => {
   const server = Hapi.server({
@@ -49,17 +50,13 @@ const SongValidator = require('./validator/songs');
 
     if (response instanceof Error) {
       if (response instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: response.message,
-        }).code(response.statusCode);
+        return h.response(BaseHandler.failResponse(response.message))
+          .code(response.statusCode);
       }
 
       const serverError = new ServerError();
-      return h.response({
-        status: 'error',
-        message: serverError.message,
-      }).code(serverError.statusCode);
+      return h.response(BaseHandler.errorResponse(serverError.message))
+        .code(serverError.statusCode);
     }
 
     return h.continue;
