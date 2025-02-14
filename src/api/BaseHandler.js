@@ -1,5 +1,3 @@
-const { snakeToCamelCase } = require('../utils');
-
 class BaseHandler {
   constructor({ service, validator }) {
     this._service = service;
@@ -18,7 +16,7 @@ class BaseHandler {
     return this.generateResponse('error', message, data);
   }
 
-  static generateResponse({ status, message, data }) {
+  static generateResponse(status, message, data) {
     let response = { status };
 
     if (message) {
@@ -29,7 +27,7 @@ class BaseHandler {
       response = { ...response, data };
     }
 
-    return snakeToCamelCase(response);
+    return response;
   }
 }
 

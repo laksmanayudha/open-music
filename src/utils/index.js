@@ -1,31 +1,37 @@
-const snakeToCamelCase = (json) => {
-  const camelCasedJson = {};
-  Object.keys(json).forEach((keyString) => {
-    const camelCasedKey = keyString.toLowerCase().replace(/([-_][a-z])/g, (group) => group.slice(-1).toUpperCase());
+const snakeToCamelCase = (obj) => {
+  let newObj;
 
-    if (typeof json[keyString] === 'object') {
-      camelCasedJson[camelCasedKey] = snakeToCamelCase(json[keyString]);
-    } else {
-      camelCasedJson[camelCasedKey] = json[keyString];
-    }
-  });
-
-  return camelCasedJson;
+  if (Array.isArray(obj)) {
+    newObj = obj.map(snakeToCamelCase);
+  } else if (typeof obj === 'object' && obj !== null) {
+    const camelCasedObj = {};
+    Object.keys(obj).forEach((keyString) => {
+      const camelCasedKey = keyString.replace(/([-_][a-zA-Z])/g, (group) => group.slice(-1).toUpperCase());
+      camelCasedObj[camelCasedKey] = snakeToCamelCase(obj[keyString]);
+    });
+    newObj = camelCasedObj;
+  } else {
+    newObj = obj;
+  }
+  return newObj;
 };
 
-const camelToSnakeCase = (json) => {
-  const snakeCasedJson = {};
-  Object.keys(json).forEach((keyString) => {
-    const snakeCasedKey = keyString.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+const camelToSnakeCase = (obj) => {
+  let newObj;
 
-    if (typeof json[keyString] === 'object') {
-      snakeCasedJson[snakeCasedKey] = camelToSnakeCase(json[keyString]);
-    } else {
-      snakeCasedJson[snakeCasedKey] = json[keyString];
-    }
-  });
-
-  return snakeCasedJson;
+  if (Array.isArray(obj)) {
+    newObj = obj.map(camelToSnakeCase);
+  } else if (typeof obj === 'object' && obj !== null) {
+    const snakeCasedObj = {};
+    Object.keys(obj).forEach((keyString) => {
+      const snakeCasedKey = keyString.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+      snakeCasedObj[snakeCasedKey] = camelToSnakeCase(obj[keyString]);
+    });
+    newObj = snakeCasedObj;
+  } else {
+    newObj = obj;
+  }
+  return newObj;
 };
 
 const splitKeyAndValue = (data = {}) => {

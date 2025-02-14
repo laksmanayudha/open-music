@@ -1,6 +1,10 @@
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
-const { splitKeyAndValue } = require('../utils');
+const {
+  splitKeyAndValue,
+  camelToSnakeCase,
+  snakeToCamelCase,
+} = require('../utils');
 
 class BaseService {
   constructor(table) {
@@ -15,20 +19,20 @@ class BaseService {
 
   async _all() {
     const result = await this._pool.query(`SELECT * FROM ${this._table}`);
-    return result.rows;
+    return snakeToCamelCase(result.rows);
   }
 
   async _find(id) {
     const result = await this._pool.query({
-      query: `SELECT * FROM ${this._table} WHERE ${this._primaryKey} = $1`,
+      text: `SELECT * FROM ${this._table} WHERE ${this._primaryKey} = $1`,
       values: [id],
     });
 
-    return result.rows;
+    return snakeToCamelCase(result.rows);
   }
 
   async _insert(data) {
-    const newData = { [this._primaryKey]: this._generateId(), ...data };
+    const newData = camelToSnakeCase({ [this._primaryKey]: this._generateId(), ...data });
     const splitted = splitKeyAndValue(newData);
     const escapedInsert = splitted.orders.map(({ seq }) => `$${seq}`).join(',');
     const columns = splitted.keys.join(',');
@@ -38,11 +42,11 @@ class BaseService {
       values: splitted.values,
     });
 
-    return result.rows;
+    return snakeToCamelCase(result.rows);
   }
 
   async _update(id, data) {
-    const splitted = splitKeyAndValue(data);
+    const splitted = splitKeyAndValue(camelToSnakeCase(data));
     const escapedUpdate = splitted.orders.map(({ key, seq }) => `${key} = $${seq}`).join(',');
 
     const result = await this._pool.query({
@@ -50,7 +54,7 @@ class BaseService {
       values: [...splitted.values, id],
     });
 
-    return result.rows;
+    return snakeToCamelCase(result.rows);
   }
 
   async _delete(id) {
@@ -59,7 +63,7 @@ class BaseService {
       values: [id],
     });
 
-    return result.rows;
+    return snakeToCamelCase(result.rows);
   }
 }
 

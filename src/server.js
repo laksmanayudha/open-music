@@ -32,14 +32,14 @@ const BaseHandler = require('./api/BaseHandler');
       plugin: albums,
       options: {
         service: new AlbumService(),
-        validaor: AlbumValidaor,
+        validator: AlbumValidaor,
       },
     },
     {
       plugin: songs,
       options: {
         service: new SongService(),
-        validaor: SongValidator,
+        validator: SongValidator,
       },
     },
   ]);
@@ -49,13 +49,14 @@ const BaseHandler = require('./api/BaseHandler');
     const { response } = request;
 
     if (response instanceof Error) {
+      console.log(response);
       if (response instanceof ClientError) {
-        return h.response(BaseHandler.failResponse(response.message))
+        return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.statusCode);
       }
 
       const serverError = new ServerError();
-      return h.response(BaseHandler.errorResponse(serverError.message))
+      return h.response(BaseHandler.errorResponse(null, serverError.message))
         .code(serverError.statusCode);
     }
 

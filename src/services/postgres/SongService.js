@@ -1,7 +1,6 @@
 const BaseService = require('../BaseService');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { camelToSnakeCase } = require('../../utils');
 
 class SongService extends BaseService {
   constructor() {
@@ -16,14 +15,19 @@ class SongService extends BaseService {
     duration,
     albumId,
   }) {
-    const rows = await this._insert(camelToSnakeCase({
+    const createdAt = new Date().toISOString();
+    const song = {
       title,
       year,
       genre,
       performer,
       duration,
       albumId,
-    }));
+      createdAt,
+      updatedAt: createdAt,
+    };
+
+    const rows = await this._insert(song);
 
     if (!rows.length) {
       throw new InvariantError('Lagu gagal ditambahkan');
@@ -52,7 +56,23 @@ class SongService extends BaseService {
       throw new NotFoundError('Lagu tidak ditemukan');
     }
 
-    return rows[0];
+    return rows.map(({
+      id,
+      title,
+      year,
+      performer,
+      genre,
+      duration,
+      albumId,
+    }) => ({
+      id,
+      title,
+      year,
+      performer,
+      genre,
+      duration,
+      albumId,
+    }))[0];
   }
 
   async updateById(id, {
@@ -63,14 +83,18 @@ class SongService extends BaseService {
     duration,
     albumId,
   }) {
-    const rows = await this._update(id, camelToSnakeCase({
+    const updatedAt = new Date().toISOString();
+    const song = {
       title,
       year,
       genre,
       performer,
       duration,
       albumId,
-    }));
+      updatedAt,
+    };
+
+    const rows = await this._update(id, song);
 
     if (!rows.length) {
       throw new NotFoundError('Lagu gagal diperbarui. Lagu tidak ditemukan');
