@@ -36,13 +36,11 @@ class SongService extends BaseService {
     return rows[0][this._primaryKey];
   }
 
-  async getAll(params = {}) {
+  async getAll({ title, performer } = {}) {
     let rows = [];
 
-    if (params.title) {
-      rows = await this._all();
-    } else if (params.performer) {
-      rows = await this._all();
+    if (title || performer) {
+      rows = await this._getWhereLike({ title, performer });
     } else {
       rows = await this._all();
     }

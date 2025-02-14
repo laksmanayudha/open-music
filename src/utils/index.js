@@ -34,10 +34,22 @@ const camelToSnakeCase = (obj) => {
   return newObj;
 };
 
-const splitKeyAndValue = (data = {}) => {
-  const keys = Object.keys(data);
-  const values = Object.values(data);
-  const orders = keys.map((key, index) => ({ key, seq: index + 1 }));
+const splitKeyAndValue = (data = {}, removeFalsy = false) => {
+  const keyList = Object.keys(data);
+  const keys = [];
+  const values = [];
+  const orders = [];
+  let seq = 1;
+
+  keyList.forEach((key) => {
+    if (!removeFalsy || (removeFalsy && data[key])) {
+      keys.push(key);
+      values.push(data[key]);
+      orders.push({ key, seq });
+      seq += 1;
+    }
+  });
+
   return { keys, values, orders };
 };
 

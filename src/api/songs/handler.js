@@ -9,7 +9,7 @@ class SongHandler extends BaseHandler {
   }
 
   async all(request, h) {
-    const songs = await this._service.getAll();
+    const songs = await this._service.getAll(request.query);
     return h.response(BaseHandler.successResponse({ songs }));
   }
 

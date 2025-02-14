@@ -65,6 +65,19 @@ class BaseService {
 
     return snakeToCamelCase(result.rows);
   }
+
+  async _getWhereLike(columns = {}) {
+    const splitted = splitKeyAndValue(camelToSnakeCase(columns), true);
+    const escapedLike = splitted.orders.map(({ key, seq }) => `${key} ILIKE $${seq}`).join(' AND ');
+    const likeValues = splitted.values.map((value) => `%${value}%`);
+
+    const result = await this._pool.query({
+      text: `SELECT * FROM ${this._table} WHERE ${escapedLike}`,
+      values: [...likeValues],
+    });
+
+    return snakeToCamelCase(result.rows);
+  }
 }
 
 module.exports = BaseService;
