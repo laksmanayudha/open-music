@@ -1,6 +1,11 @@
 const BaseHandler = require('../BaseHandler');
 
 class AlbumHandler extends BaseHandler {
+  constructor({ service, songService, validator }) {
+    super({ service, validator });
+    this._songService = songService;
+  }
+
   async store(request, h) {
     this._validator.validatePayload(request.payload);
 
@@ -11,7 +16,14 @@ class AlbumHandler extends BaseHandler {
   async detail(request, h) {
     const { id } = request.params;
     const album = await this._service.findById(id);
-    return h.response(BaseHandler.successResponse({ album }));
+    const songs = await this._songService.getByAlbumId(id);
+
+    return h.response(BaseHandler.successResponse({
+      album: {
+        ...album,
+        songs,
+      },
+    }));
   }
 
   async update(request, h) {

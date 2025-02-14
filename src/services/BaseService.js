@@ -31,6 +31,18 @@ class BaseService {
     return snakeToCamelCase(result.rows);
   }
 
+  async _getBy(columns = {}) {
+    const splitted = splitKeyAndValue(camelToSnakeCase(columns), true);
+    const escapedAnd = splitted.orders.map(({ key, seq }) => `${key} = $${seq}`).join(' AND ');
+
+    const result = await this._pool.query({
+      text: `SELECT * FROM ${this._table} WHERE ${escapedAnd}`,
+      values: [...splitted.values],
+    });
+
+    return snakeToCamelCase(result.rows);
+  }
+
   async _insert(data) {
     const newData = camelToSnakeCase({ [this._primaryKey]: this._generateId(), ...data });
     const splitted = splitKeyAndValue(newData);

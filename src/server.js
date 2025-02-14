@@ -32,6 +32,7 @@ const BaseHandler = require('./api/BaseHandler');
       plugin: albums,
       options: {
         service: new AlbumService(),
+        songService: new SongService(),
         validator: AlbumValidaor,
       },
     },

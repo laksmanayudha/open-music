@@ -48,6 +48,11 @@ class SongService extends BaseService {
     return rows.map(({ id, title, performer }) => ({ id, title, performer }));
   }
 
+  async getByAlbumId(albumId) {
+    const rows = await this._getBy({ albumId });
+    return rows.map(({ id, title, performer }) => ({ id, title, performer }));
+  }
+
   async findById(id) {
     const rows = await this._find(id);
     if (!rows.length) {
