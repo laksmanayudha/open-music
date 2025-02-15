@@ -1,5 +1,6 @@
-require('dotenv').config();
 const process = require('process');
+require('dotenv').config();
+
 const Hapi = require('@hapi/hapi');
 const ClientError = require('./exceptions/ClientError');
 const ServerError = require('./exceptions/ServerError');
@@ -17,8 +18,8 @@ const BaseHandler = require('./api/BaseHandler');
 
 (async () => {
   const server = Hapi.server({
-    port: process.env.APP_PORT,
-    host: process.env.APP_HOST,
+    port: process.env.PORT,
+    host: process.env.HOST,
     routes: {
       cors: {
         origin: ['*'],
@@ -50,10 +51,14 @@ const BaseHandler = require('./api/BaseHandler');
     const { response } = request;
 
     if (response instanceof Error) {
-      console.log(response);
       if (response instanceof ClientError) {
         return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.statusCode);
+      }
+
+      // mempertahankan penanganan client error oleh hapi sercara native, misalnya 404, etc.
+      if (!response.isServer) {
+        return h.continue;
       }
 
       const serverError = new ServerError();
