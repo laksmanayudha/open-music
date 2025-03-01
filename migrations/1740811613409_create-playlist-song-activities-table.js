@@ -30,7 +30,7 @@ exports.up = (pgm) => {
       notNull: true,
     },
     time: {
-      type: 'TIMESTAMPZ',
+      type: 'TIMESTAMPTZ',
       notNull: true,
     },
   });

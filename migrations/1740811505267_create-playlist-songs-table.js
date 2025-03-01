@@ -28,7 +28,7 @@ exports.up = (pgm) => {
   });
 
   pgm.addConstraint('playlist_songs', 'unique_playlist_id_song_id', {
-    unique: 'UNIQUE(playlist_id, song_id)',
+    unique: ['playlist_id', 'song_id'],
   });
 };
 

@@ -28,7 +28,7 @@ exports.up = (pgm) => {
   });
 
   pgm.addConstraint('collaborations', 'unique_playlist_id_user_id', {
-    unique: 'UNIQUE(playlist_id, user_id)',
+    unique: ['playlist_id', 'user_id'],
   });
 };
 
