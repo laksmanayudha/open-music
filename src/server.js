@@ -2,8 +2,10 @@ const process = require('process');
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt');
 const ClientError = require('./exceptions/ClientError');
 const ServerError = require('./exceptions/ServerError');
+const BaseHandler = require('./api/BaseHandler');
 
 // albums
 const albums = require('./api/albums');
@@ -14,7 +16,17 @@ const AlbumValidaor = require('./validator/albums');
 const songs = require('./api/songs');
 const SongService = require('./services/postgres/SongService');
 const SongValidator = require('./validator/songs');
-const BaseHandler = require('./api/BaseHandler');
+
+// users
+const users = require('./api/users');
+const UserService = require('./services/postgres/UserService');
+const UserValidator = require('./validator/users');
+
+// authentications
+const authentications = require('./api/authentications');
+const AuthenticationService = require('./services/postgres/AuthenticationService');
+const AuthenticationValidator = require('./validator/authentications');
+const tokenizer = require('./utils/tokenizer');
 
 (async () => {
   const server = Hapi.server({
@@ -25,6 +37,30 @@ const BaseHandler = require('./api/BaseHandler');
         origin: ['*'],
       },
     },
+  });
+
+  // register external plugin
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+
+  // define auth strategy using jwt
+  server.auth.strategy('openmusic_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.id,
+      },
+    }),
   });
 
   // register app plugin
@@ -44,6 +80,22 @@ const BaseHandler = require('./api/BaseHandler');
         validator: SongValidator,
       },
     },
+    {
+      plugin: users,
+      options: {
+        service: new UserService(),
+        validator: UserValidator,
+      },
+    },
+    {
+      plugin: authentications,
+      options: {
+        service: new AuthenticationService(),
+        userService: new UserService(),
+        validator: AuthenticationValidator,
+        tokenizer,
+      },
+    },
   ]);
 
   // error handling
@@ -51,6 +103,7 @@ const BaseHandler = require('./api/BaseHandler');
     const { response } = request;
 
     if (response instanceof Error) {
+      console.log(response.message);
       if (response instanceof ClientError) {
         return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.statusCode);

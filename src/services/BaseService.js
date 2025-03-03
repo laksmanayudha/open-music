@@ -44,13 +44,16 @@ class BaseService {
   }
 
   async _insert(data) {
-    const newData = camelToSnakeCase({ [this._primaryKey]: this._generateId(), ...data });
+    const newData = this._primaryKey
+      ? camelToSnakeCase({ [this._primaryKey]: this._generateId(), ...data })
+      : camelToSnakeCase({ ...data });
+
     const splitted = splitKeyAndValue(newData);
     const escapedInsert = splitted.orders.map(({ seq }) => `$${seq}`).join(',');
     const columns = splitted.keys.join(',');
 
     const result = await this._pool.query({
-      text: `INSERT INTO ${this._table} (${columns}) VALUES (${escapedInsert}) RETURNING ${this._primaryKey}`,
+      text: `INSERT INTO ${this._table} (${columns}) VALUES (${escapedInsert}) RETURNING ${this._primaryKey || '*'}`,
       values: splitted.values,
     });
 
