@@ -81,6 +81,18 @@ class BaseService {
     return snakeToCamelCase(result.rows);
   }
 
+  async _deleteBy(columns) {
+    const splitted = splitKeyAndValue(camelToSnakeCase(columns), true);
+    const escapedAnd = splitted.orders.map(({ key, seq }) => `${key} = $${seq}`).join(' AND ');
+
+    const result = await this._pool.query({
+      text: `DELETE FROM ${this._table} WHERE ${escapedAnd}`,
+      values: [...splitted.values],
+    });
+
+    return snakeToCamelCase(result.rows);
+  }
+
   async _getWhereLike(columns = {}) {
     const splitted = splitKeyAndValue(camelToSnakeCase(columns), true);
     const escapedLike = splitted.orders.map(({ key, seq }) => `${key} ILIKE $${seq}`).join(' AND ');
