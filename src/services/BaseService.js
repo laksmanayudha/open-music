@@ -86,7 +86,7 @@ class BaseService {
     const escapedAnd = splitted.orders.map(({ key, seq }) => `${key} = $${seq}`).join(' AND ');
 
     const result = await this._pool.query({
-      text: `DELETE FROM ${this._table} WHERE ${escapedAnd}`,
+      text: `DELETE FROM ${this._table} WHERE ${escapedAnd} RETURNING *`,
       values: [...splitted.values],
     });
 
