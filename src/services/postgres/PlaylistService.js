@@ -28,16 +28,25 @@ class PlaylistService extends BaseService {
     return rows[0][this._primaryKey];
   }
 
-  async getByOwner(owner) {
-    const rows = await this._getBy({ owner });
-    return rows.map(({ id, name, owner }) => ({ id, name, username: owner }));
+  async getByOwnerOrCollaborator(userId) {
+    const query = {
+      text: `SELECT DISTINCT playlists.*, users.username FROM playlists
+      INNER JOIN collaborations ON playlists.id = collaborations.playlist_id
+      INNER JOIN users ON playlists.owner = users.id
+      WHERE playlists.owner = $1 OR collaborations.user_id = $1
+      `,
+      values: [userId],
+    };
+
+    const { rows } = await this._pool.query(query);
+    return rows.map(({ id, name, username }) => ({ id, name, username }));
   }
 
   async delete(id) {
     const rows = await this._delete(id);
 
     if (!rows.length) {
-      throw new NotFoundError('Gagal menghapus playlist');
+      throw new NotFoundError('Gagal menghapus playlist. Playlist tidak ditemukan.');
     }
   }
 
@@ -51,7 +60,7 @@ class PlaylistService extends BaseService {
     const playlist = rows[0];
 
     if (playlist.owner !== owner) {
-      throw new AuthorizationError('Anda tidak berhak mengakes resource ini');
+      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
     }
   }
 }

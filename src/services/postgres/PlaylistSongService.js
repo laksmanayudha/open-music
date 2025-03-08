@@ -1,13 +1,20 @@
+const AuthorizationError = require('../../exceptions/AuthorizationError');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const BaseService = require('../BaseService');
 
 class PlaylistSongService extends BaseService {
-  constructor(playlistService, songService, userService) {
+  constructor({
+    playlistService,
+    songService,
+    userService,
+    collaborationService,
+  }) {
     super('playlist_songs');
     this._playlistService = playlistService;
     this._songService = songService;
     this._userService = userService;
+    this._collaborationService = collaborationService;
   }
 
   async storeIfNotExists({ playlistId, songId }) {
@@ -23,9 +30,17 @@ class PlaylistSongService extends BaseService {
   }
 
   async verifyPlaylistSongAccess(playlistId, owner) {
-    await this._playlistService.verifyPlaylistOwner(playlistId, owner);
-
-    // TODO: verify collaborator
+    try {
+      await this._playlistService.verifyPlaylistOwner(playlistId, owner);
+    } catch (error) {
+      // verify collaborator
+      if (error instanceof AuthorizationError) {
+        await this._collaborationService.verifyCollaborator(playlistId, owner);
+        return true;
+      }
+      throw error;
+    }
+    return true;
   }
 
   async checkSongAlreadyInPlaylist({ playlistId, songId }) {

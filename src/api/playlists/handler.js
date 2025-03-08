@@ -4,10 +4,12 @@ class PlaylistHandler extends BaseHandler {
   constructor({
     service,
     playlistSongService,
+    playlistSongActivityService,
     validator,
   }) {
     super({ service, validator });
     this._playlistSongService = playlistSongService;
+    this._playlistSongActivityService = playlistSongActivityService;
   }
 
   async store(request, h) {
@@ -22,7 +24,7 @@ class PlaylistHandler extends BaseHandler {
 
   async getAll(request, h) {
     const { id: credentialId } = request.auth.credentials;
-    const playlists = await this._service.getByOwner(credentialId);
+    const playlists = await this._service.getByOwnerOrCollaborator(credentialId);
 
     return h.response(BaseHandler.successResponse({ playlists }));
   }
@@ -37,6 +39,16 @@ class PlaylistHandler extends BaseHandler {
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus playlist'));
   }
 
+  async getActivities(request, h) {
+    const { id: playlistId } = request.params;
+    const { id: credentialId } = request.auth.credentials;
+
+    await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
+    const activities = await this._playlistSongActivityService.getByPlaylistId(playlistId);
+
+    return h.response(BaseHandler.successResponse({ playlistId, activities }));
+  }
+
   async addSongToPlaylist(request, h) {
     this._validator.validatePostSongPayload(request.payload);
 
@@ -47,7 +59,13 @@ class PlaylistHandler extends BaseHandler {
     await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
     await this._playlistSongService.storeIfNotExists({ playlistId, songId });
 
-    // TODO: insert ke activity
+    // insert ke activity
+    await this._playlistSongActivityService.store({
+      playlistId,
+      songId,
+      userId: credentialId,
+      action: 'add',
+    });
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menambahkan lagu ke playlist')).code(201);
   }
@@ -71,6 +89,14 @@ class PlaylistHandler extends BaseHandler {
 
     await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
     await this._playlistSongService.deleteByPlaylistIdAndSongId(playlistId, songId);
+
+    // insert ke activity
+    await this._playlistSongActivityService.store({
+      playlistId,
+      songId,
+      userId: credentialId,
+      action: 'delete',
+    });
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus lagi di dalam playlist'));
   }

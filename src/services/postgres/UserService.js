@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const BaseService = require('../BaseService');
 const InvariantError = require('../../exceptions/InvariantError');
 const AuthenticationError = require('../../exceptions/AuthenticationError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class UserService extends BaseService {
   constructor() {
@@ -59,6 +60,14 @@ class UserService extends BaseService {
     }
 
     return id;
+  }
+
+  async verifyRegisteredUser(id) {
+    const rows = await this._find(id);
+
+    if (!rows.length) {
+      throw new NotFoundError('User tidak ditemukan');
+    }
   }
 }
 

@@ -5,6 +5,7 @@ const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
 const ClientError = require('./exceptions/ClientError');
 const ServerError = require('./exceptions/ServerError');
+const AuthenticationError = require('./exceptions/AuthenticationError');
 const BaseHandler = require('./api/BaseHandler');
 
 // albums
@@ -32,7 +33,13 @@ const tokenizer = require('./utils/tokenizer');
 const playlists = require('./api/playlists');
 const PlaylistService = require('./services/postgres/PlaylistService');
 const PlaylistSongService = require('./services/postgres/PlaylistSongService');
+const PlaylistSongActivityService = require('./services/postgres/PlaylistSongActivityService');
 const PlaylistValidator = require('./validator/playlists');
+
+// collaborations
+const collaborations = require('./api/collaborations');
+const CollaborationService = require('./services/postgres/CollaborationService');
+const CollaborationValidator = require('./validator/collaborations');
 
 (async () => {
   const server = Hapi.server({
@@ -74,12 +81,15 @@ const PlaylistValidator = require('./validator/playlists');
   const albumService = new AlbumService();
   const userService = new UserService();
   const playlistService = new PlaylistService();
+  const playlistSongActivityService = new PlaylistSongActivityService();
   const songService = new SongService();
-  const playlistSongService = new PlaylistSongService(
+  const collaborationService = new CollaborationService();
+  const playlistSongService = new PlaylistSongService({
     playlistService,
     songService,
     userService,
-  );
+    collaborationService,
+  });
 
   await server.register([
     {
@@ -118,7 +128,17 @@ const PlaylistValidator = require('./validator/playlists');
       options: {
         service: playlistService,
         playlistSongService,
+        playlistSongActivityService,
         validator: PlaylistValidator,
+      },
+    },
+    {
+      plugin: collaborations,
+      options: {
+        service: collaborationService,
+        playlistService,
+        userService,
+        validator: CollaborationValidator,
       },
     },
   ]);
@@ -129,6 +149,11 @@ const PlaylistValidator = require('./validator/playlists');
 
     if (response instanceof Error) {
       console.log(response.message);
+      if (response.output.statusCode === (new AuthenticationError().statusCode)) {
+        return h.response(BaseHandler.failResponse(null, response.message))
+          .code(response.output.statusCode);
+      }
+
       if (response instanceof ClientError) {
         return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.statusCode);
