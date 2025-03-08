@@ -49,7 +49,7 @@ class AlbumService extends BaseService {
     return rows[0][this._primaryKey];
   }
 
-  async deleteById(id) {
+  async delete(id) {
     const rows = await this._delete(id);
     if (!rows.length) {
       throw new NotFoundError('Album gagal dihapus. Album tidak ditemukan');

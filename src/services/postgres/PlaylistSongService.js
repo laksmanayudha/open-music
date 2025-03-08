@@ -1,4 +1,5 @@
 const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 const BaseService = require('../BaseService');
 
 class PlaylistSongService extends BaseService {
@@ -9,7 +10,7 @@ class PlaylistSongService extends BaseService {
     this._userService = userService;
   }
 
-  async store({ playlistId, songId }) {
+  async storeIfNotExists({ playlistId, songId }) {
     await this.checkSongAlreadyInPlaylist({ playlistId, songId });
 
     const rows = await this._insert({ playlistId, songId });
@@ -35,7 +36,7 @@ class PlaylistSongService extends BaseService {
     }
   }
 
-  async getByPlaylistId(playlistId) {
+  async getSongsByPlaylistId(playlistId) {
     // playlist
     const playlist = await this._playlistService.find(playlistId);
 
@@ -59,6 +60,16 @@ class PlaylistSongService extends BaseService {
       username: user.username,
       songs,
     };
+  }
+
+  async deleteByPlaylistIdAndSongId(playlistId, songId) {
+    const rows = await this._deleteBy({ playlistId, songId });
+
+    if (!rows.length) {
+      throw new NotFoundError('Lagu di dalam playlist gagal dihapus. Lagu tidak ditemukan');
+    }
+
+    return rows[0][this._primaryKey];
   }
 }
 

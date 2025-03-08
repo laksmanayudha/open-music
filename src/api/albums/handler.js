@@ -37,7 +37,7 @@ class AlbumHandler extends BaseHandler {
 
   async delete(request, h) {
     const { id } = request.params;
-    await this._service.deleteById(id);
+    await this._service.delete(id);
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus album'));
   }

@@ -28,8 +28,11 @@ class PlaylistHandler extends BaseHandler {
   }
 
   async delete(request, h) {
+    const { id: playlistId } = request.params;
     const { id: credentialId } = request.auth.credentials;
-    await this._service.deleteByOwner(credentialId);
+
+    await this._service.verifyPlaylistOwner(playlistId, credentialId);
+    await this._service.delete(playlistId);
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus playlist'));
   }
@@ -54,10 +57,22 @@ class PlaylistHandler extends BaseHandler {
     const { id: credentialId } = request.auth.credentials;
 
     await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
-    const playlist = await this._playlistSongService.getByPlaylistId(playlistId);
-    console.log(playlist);
+    const playlist = await this._playlistSongService.getSongsByPlaylistId(playlistId);
 
     return h.response(BaseHandler.successResponse({ playlist }));
+  }
+
+  async deleteSongInPlaylist(request, h) {
+    this._validator.validateDeleteSongPayload(request.payload);
+    const { songId } = request.payload;
+
+    const { id: playlistId } = request.params;
+    const { id: credentialId } = request.auth.credentials;
+
+    await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
+    await this._playlistSongService.deleteByPlaylistIdAndSongId(playlistId, songId);
+
+    return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus lagi di dalam playlist'));
   }
 }
 

@@ -18,7 +18,7 @@ class PlaylistService extends BaseService {
     return rows[0];
   }
 
-  async storeIfNotExists({ name, owner }) {
+  async store({ name, owner }) {
     const rows = await this._insert({ name, owner });
 
     if (!rows.length) {
@@ -33,8 +33,8 @@ class PlaylistService extends BaseService {
     return rows.map(({ id, name, owner }) => ({ id, name, username: owner }));
   }
 
-  async deleteByOwner(owner) {
-    const rows = await this._deleteBy({ owner });
+  async delete(id) {
+    const rows = await this._delete(id);
 
     if (!rows.length) {
       throw new NotFoundError('Gagal menghapus playlist');

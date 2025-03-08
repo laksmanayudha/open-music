@@ -1,4 +1,8 @@
-const { PlaylistPostPayloadSchema, PlaylistSongPostPayloadSchema } = require('./schema');
+const {
+  PlaylistPostPayloadSchema,
+  PlaylistSongPostPayloadSchema,
+  PlaylistSongDeletePayloadSchema,
+} = require('./schema');
 const InvariantError = require('../../exceptions/InvariantError');
 
 const validatePayload = (payload, payloadSchema) => {
@@ -11,4 +15,5 @@ const validatePayload = (payload, payloadSchema) => {
 module.exports = {
   validatePostPayload: (payload) => validatePayload(payload, PlaylistPostPayloadSchema),
   validatePostSongPayload: (payload) => validatePayload(payload, PlaylistSongPostPayloadSchema),
+  validateDeleteSongPayload: (payload) => validatePayload(payload, PlaylistSongDeletePayloadSchema),
 };
