@@ -129,6 +129,7 @@ const CollaborationValidator = require('./validator/collaborations');
         service: playlistService,
         playlistSongService,
         playlistSongActivityService,
+        songService,
         validator: PlaylistValidator,
       },
     },
@@ -148,7 +149,6 @@ const CollaborationValidator = require('./validator/collaborations');
     const { response } = request;
 
     if (response instanceof Error) {
-      console.log(response.message);
       if (response.output.statusCode === (new AuthenticationError().statusCode)) {
         return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.output.statusCode);

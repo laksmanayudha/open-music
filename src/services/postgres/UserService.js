@@ -13,7 +13,7 @@ class UserService extends BaseService {
     const rows = await this._find(id);
 
     if (!rows.length) {
-      throw new InvariantError('User tidak ditemukan');
+      throw new NotFoundError('User tidak ditemukan');
     }
 
     return rows[0];
@@ -60,14 +60,6 @@ class UserService extends BaseService {
     }
 
     return id;
-  }
-
-  async verifyRegisteredUser(id) {
-    const rows = await this._find(id);
-
-    if (!rows.length) {
-      throw new NotFoundError('User tidak ditemukan');
-    }
   }
 }
 

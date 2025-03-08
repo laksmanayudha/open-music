@@ -5,11 +5,13 @@ class PlaylistHandler extends BaseHandler {
     service,
     playlistSongService,
     playlistSongActivityService,
+    songService,
     validator,
   }) {
     super({ service, validator });
     this._playlistSongService = playlistSongService;
     this._playlistSongActivityService = playlistSongActivityService;
+    this._songService = songService;
   }
 
   async store(request, h) {
@@ -57,6 +59,9 @@ class PlaylistHandler extends BaseHandler {
     const { id: credentialId } = request.auth.credentials;
 
     await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
+    await this._songService.find(songId);
+
+    // store to playlist
     await this._playlistSongService.storeIfNotExists({ playlistId, songId });
 
     // insert ke activity

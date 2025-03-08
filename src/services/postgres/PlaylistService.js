@@ -31,7 +31,7 @@ class PlaylistService extends BaseService {
   async getByOwnerOrCollaborator(userId) {
     const query = {
       text: `SELECT DISTINCT playlists.*, users.username FROM playlists
-      INNER JOIN collaborations ON playlists.id = collaborations.playlist_id
+      LEFT JOIN collaborations ON playlists.id = collaborations.playlist_id
       INNER JOIN users ON playlists.owner = users.id
       WHERE playlists.owner = $1 OR collaborations.user_id = $1
       `,

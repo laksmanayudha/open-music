@@ -18,7 +18,7 @@ class CollaborationtHandler extends BaseHandler {
     const { id: credentialId } = request.auth.credentials;
 
     await this._playlistService.verifyPlaylistOwner(playlistId, credentialId);
-    await this._userService.verifyRegisteredUser(userId);
+    await this._userService.find(userId);
 
     const collaborationId = await this._service.storeIfNotExists({ playlistId, userId });
 
