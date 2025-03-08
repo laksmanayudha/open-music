@@ -15,7 +15,7 @@ class AlbumHandler extends BaseHandler {
 
   async detail(request, h) {
     const { id } = request.params;
-    const album = await this._service.findById(id);
+    const album = await this._service.find(id);
     const songs = await this._songService.getByAlbumId(id);
 
     return h.response(BaseHandler.successResponse({
@@ -30,7 +30,7 @@ class AlbumHandler extends BaseHandler {
     this._validator.validatePayload(request.payload);
 
     const { id } = request.params;
-    await this._service.updateById(id, request.payload);
+    await this._service.update(id, request.payload);
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil memperbarui album'));
   }

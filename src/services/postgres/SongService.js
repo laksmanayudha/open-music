@@ -53,7 +53,7 @@ class SongService extends BaseService {
     return rows.map(({ id, title, performer }) => ({ id, title, performer }));
   }
 
-  async findById(id) {
+  async find(id) {
     const rows = await this._find(id);
     if (!rows.length) {
       throw new NotFoundError('Lagu tidak ditemukan');
@@ -78,7 +78,7 @@ class SongService extends BaseService {
     }))[0];
   }
 
-  async updateById(id, {
+  async update(id, {
     title,
     year,
     genre,
@@ -113,6 +113,11 @@ class SongService extends BaseService {
     }
 
     return rows[0][this._primaryKey];
+  }
+
+  async getByIdIn(ids) {
+    const rows = await this._getWhereIn(this._primaryKey, ids);
+    return rows;
   }
 }
 

@@ -1,8 +1,64 @@
+const InvariantError = require('../../exceptions/InvariantError');
 const BaseService = require('../BaseService');
 
 class PlaylistSongService extends BaseService {
-  constructor() {
+  constructor(playlistService, songService, userService) {
     super('playlist_songs');
+    this._playlistService = playlistService;
+    this._songService = songService;
+    this._userService = userService;
+  }
+
+  async store({ playlistId, songId }) {
+    await this.checkSongAlreadyInPlaylist({ playlistId, songId });
+
+    const rows = await this._insert({ playlistId, songId });
+
+    if (!rows.length) {
+      throw new InvariantError('Playlist gagal ditambahkan');
+    }
+
+    return rows[0][this._primaryKey];
+  }
+
+  async verifyPlaylistSongAccess(playlistId, owner) {
+    await this._playlistService.verifyPlaylistOwner(playlistId, owner);
+
+    // TODO: verify collaborator
+  }
+
+  async checkSongAlreadyInPlaylist({ playlistId, songId }) {
+    const rows = await this._getBy({ playlistId, songId });
+
+    if (rows.length) {
+      throw new InvariantError('Lagu sudah ada di dalam playlist');
+    }
+  }
+
+  async getByPlaylistId(playlistId) {
+    // playlist
+    const playlist = await this._playlistService.find(playlistId);
+
+    // user
+    const user = await this._userService.find(playlist.owner);
+
+    // playlist songs
+    const playlistSongs = await this._getBy({ playlistId });
+
+    // songs
+    const songIds = [...new Set(playlistSongs.map(({ songId }) => songId))];
+    const songMasters = await this._songService.getByIdIn(songIds);
+    const songs = playlistSongs.map((playlistSong) => {
+      const { id, title, performer } = songMasters.find((song) => song.id === playlistSong.songId);
+      return { id, title, performer };
+    });
+
+    return {
+      id: playlist.id,
+      name: playlist.name,
+      username: user.username,
+      songs,
+    };
   }
 }
 

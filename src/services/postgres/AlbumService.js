@@ -24,7 +24,7 @@ class AlbumService extends BaseService {
     return rows[0][this._primaryKey];
   }
 
-  async findById(id) {
+  async find(id) {
     const rows = await this._find(id);
     if (!rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
@@ -33,7 +33,7 @@ class AlbumService extends BaseService {
     return rows.map(({ id, name, year }) => ({ id, name, year }))[0];
   }
 
-  async updateById(id, { name, year }) {
+  async update(id, { name, year }) {
     const updatedAt = new Date().toISOString();
     const album = {
       name,

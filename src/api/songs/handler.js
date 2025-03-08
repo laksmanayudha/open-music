@@ -15,7 +15,7 @@ class SongHandler extends BaseHandler {
 
   async detail(request, h) {
     const { id } = request.params;
-    const song = await this._service.findById(id);
+    const song = await this._service.find(id);
     return h.response(BaseHandler.successResponse({ song }));
   }
 
@@ -23,7 +23,7 @@ class SongHandler extends BaseHandler {
     this._validator.validatePayload(request.payload);
 
     const { id } = request.params;
-    await this._service.updateById(id, request.payload);
+    await this._service.update(id, request.payload);
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil memperbarui lagu'));
   }

@@ -41,12 +41,23 @@ class PlaylistHandler extends BaseHandler {
     const { id: playlistId } = request.params;
     const { id: credentialId } = request.auth.credentials;
 
-    await this._service.verifyPlaylistSongAccess(songId, credentialId);
-    await this._service.storeSongToPlaylistId(songId, playlistId);
+    await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
+    await this._playlistSongService.storeIfNotExists({ playlistId, songId });
 
     // TODO: insert ke activity
 
-    return h.response(BaseHandler.successResponse(null, 'Berhasil menambahkan lagu ke playlist'));
+    return h.response(BaseHandler.successResponse(null, 'Berhasil menambahkan lagu ke playlist')).code(201);
+  }
+
+  async getSongsInPlaylist(request, h) {
+    const { id: playlistId } = request.params;
+    const { id: credentialId } = request.auth.credentials;
+
+    await this._playlistSongService.verifyPlaylistSongAccess(playlistId, credentialId);
+    const playlist = await this._playlistSongService.getByPlaylistId(playlistId);
+    console.log(playlist);
+
+    return h.response(BaseHandler.successResponse({ playlist }));
   }
 }
 

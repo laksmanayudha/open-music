@@ -43,6 +43,17 @@ class BaseService {
     return snakeToCamelCase(result.rows);
   }
 
+  async _getWhereIn(column, values) {
+    const escapedValues = values.map((_, index) => `$${index + 1}`).join(',');
+
+    const result = await this._pool.query({
+      text: `SELECT * FROM ${this._table} WHERE ${column} IN (${escapedValues})`,
+      values: [...values],
+    });
+
+    return snakeToCamelCase(result.rows);
+  }
+
   async _insert(data) {
     const newData = this._primaryKey
       ? camelToSnakeCase({ [this._primaryKey]: this._generateId(), ...data })

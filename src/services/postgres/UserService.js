@@ -8,6 +8,16 @@ class UserService extends BaseService {
     super('users');
   }
 
+  async find(id) {
+    const rows = await this._find(id);
+
+    if (!rows.length) {
+      throw new InvariantError('User tidak ditemukan');
+    }
+
+    return rows[0];
+  }
+
   async store({ username, password, fullname }) {
     await this.verifyUniqueUsername(username);
 

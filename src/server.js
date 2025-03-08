@@ -70,26 +70,30 @@ const PlaylistValidator = require('./validator/playlists');
   });
 
   // register app plugin
+  const userService = new UserService();
+  const playlistService = new PlaylistService();
+  const songService = new SongService();
+
   await server.register([
     {
       plugin: albums,
       options: {
         service: new AlbumService(),
-        songService: new SongService(),
+        songService,
         validator: AlbumValidaor,
       },
     },
     {
       plugin: songs,
       options: {
-        service: new SongService(),
+        service: songService,
         validator: SongValidator,
       },
     },
     {
       plugin: users,
       options: {
-        service: new UserService(),
+        service: userService,
         validator: UserValidator,
       },
     },
@@ -97,7 +101,7 @@ const PlaylistValidator = require('./validator/playlists');
       plugin: authentications,
       options: {
         service: new AuthenticationService(),
-        userService: new UserService(),
+        userService,
         validator: AuthenticationValidator,
         tokenizer,
       },
@@ -105,8 +109,12 @@ const PlaylistValidator = require('./validator/playlists');
     {
       plugin: playlists,
       options: {
-        service: new PlaylistService(),
-        playlistSongService: new PlaylistSongService(),
+        service: playlistService,
+        playlistSongService: new PlaylistSongService(
+          playlistService,
+          songService,
+          userService,
+        ),
         validator: PlaylistValidator,
       },
     },
