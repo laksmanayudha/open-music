@@ -41,6 +41,11 @@ const collaborations = require('./api/collaborations');
 const CollaborationService = require('./services/postgres/CollaborationService');
 const CollaborationValidator = require('./validator/collaborations');
 
+// exports
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportValidator = require('./validator/exports');
+
 (async () => {
   const server = Hapi.server({
     port: process.env.PORT,
@@ -140,6 +145,14 @@ const CollaborationValidator = require('./validator/collaborations');
         playlistService,
         userService,
         validator: CollaborationValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        service: ProducerService,
+        playlistService,
+        validator: ExportValidator,
       },
     },
   ]);
