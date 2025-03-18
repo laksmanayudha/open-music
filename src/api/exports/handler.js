@@ -11,7 +11,7 @@ class ExportHandler extends BaseHandler {
 
     const { id: playlistId } = request.params;
     const { targetEmail } = request.payload;
-    const { id: credentialId } = request.auth.credentials.id;
+    const { id: credentialId } = request.auth.credentials;
     const message = { playlistId, targetEmail };
 
     await this._playlistService.verifyPlaylistOwner(playlistId, credentialId);

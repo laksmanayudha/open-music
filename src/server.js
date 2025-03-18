@@ -162,6 +162,7 @@ const ExportValidator = require('./validator/exports');
     const { response } = request;
 
     if (response instanceof Error) {
+      console.log(response.message);
       if (response.output.statusCode === (new AuthenticationError().statusCode)) {
         return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.output.statusCode);
