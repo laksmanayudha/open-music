@@ -1,9 +1,12 @@
 const BaseHandler = require('../BaseHandler');
 
 class AlbumHandler extends BaseHandler {
-  constructor({ service, songService, validator }) {
+  constructor({
+    service, songService, storageService, validator,
+  }) {
     super({ service, validator });
     this._songService = songService;
+    this._storageService = storageService;
   }
 
   async store(request, h) {
@@ -40,6 +43,18 @@ class AlbumHandler extends BaseHandler {
     await this._service.delete(id);
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus album'));
+  }
+
+  async uploadCover(request, h) {
+    const { cover } = request.payload;
+    const { id: albumId } = request.params;
+    this._validator.validateImageHeaders(cover.hapi.headers);
+
+    const coverUrl = await this._storageService.writeFile(cover, cover.hapi);
+
+    await this._service.updateCoverUrlById(albumId, coverUrl);
+
+    return h.response(BaseHandler.successResponse({ cover_url: coverUrl }, 'Sampul berhasil diunggah')).code(201);
   }
 }
 

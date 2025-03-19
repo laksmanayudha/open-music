@@ -30,7 +30,17 @@ class AlbumService extends BaseService {
       throw new NotFoundError('Album tidak ditemukan');
     }
 
-    return rows.map(({ id, name, year }) => ({ id, name, year }))[0];
+    return rows.map(({
+      id,
+      name,
+      year,
+      coverUrl,
+    }) => ({
+      id,
+      name,
+      year,
+      coverUrl,
+    }))[0];
   }
 
   async update(id, { name, year }) {
@@ -40,6 +50,18 @@ class AlbumService extends BaseService {
       year,
       updatedAt,
     };
+
+    const rows = await this._update(id, album);
+    if (!rows.length) {
+      throw new NotFoundError('Album gagal diperbarui. Album tidak ditemukan');
+    }
+
+    return rows[0][this._primaryKey];
+  }
+
+  async updateCoverUrlById(id, coverUrl) {
+    const updatedAt = new Date().toISOString();
+    const album = { coverUrl, updatedAt };
 
     const rows = await this._update(id, album);
     if (!rows.length) {
