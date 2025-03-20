@@ -12,6 +12,7 @@ const BaseHandler = require('./api/BaseHandler');
 const albums = require('./api/albums');
 const AlbumService = require('./services/postgres/AlbumService');
 const StorageService = require('./services/s3/StorageService');
+const UserAlbumLikeService = require('./services/postgres/UserAlbumLikeService');
 const AlbumValidaor = require('./validator/albums');
 
 // songs
@@ -86,6 +87,7 @@ const ExportValidator = require('./validator/exports');
   const authenticationService = new AuthenticationService();
   const albumService = new AlbumService();
   const storageService = new StorageService();
+  const userAlbumLikeService = new UserAlbumLikeService();
   const userService = new UserService();
   const playlistService = new PlaylistService();
   const playlistSongActivityService = new PlaylistSongActivityService();
@@ -105,6 +107,7 @@ const ExportValidator = require('./validator/exports');
         service: albumService,
         songService,
         storageService,
+        userAlbumLikeService,
         validator: AlbumValidaor,
       },
     },

@@ -9,9 +9,10 @@ module.exports = {
     songService,
     storageService,
     validator,
+    userAlbumLikeService,
   }) => {
     server.route(routes(new AlbumHandler({
-      service, songService, storageService, validator,
+      service, songService, storageService, validator, userAlbumLikeService,
     })));
   },
 };
