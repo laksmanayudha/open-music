@@ -1,3 +1,4 @@
+const config = require('../../utils/config');
 const BaseHandler = require('../BaseHandler');
 
 class ExportHandler extends BaseHandler {
@@ -15,7 +16,7 @@ class ExportHandler extends BaseHandler {
     const message = { playlistId, targetEmail };
 
     await this._playlistService.verifyPlaylistOwner(playlistId, credentialId);
-    await this._service.sendMessage('export:playlist', JSON.stringify(message));
+    await this._service.sendMessage(config.rabbitMq.queues.exportPlaylist, JSON.stringify(message));
 
     return h.response(BaseHandler.successResponse(null, 'Permintaan Anda sedang kami proses')).code(201);
   }

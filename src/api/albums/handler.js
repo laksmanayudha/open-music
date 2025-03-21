@@ -1,13 +1,20 @@
+const config = require('../../utils/config');
 const BaseHandler = require('../BaseHandler');
 
 class AlbumHandler extends BaseHandler {
   constructor({
-    service, songService, storageService, validator, userAlbumLikeService,
+    service,
+    songService,
+    storageService,
+    validator,
+    userAlbumLikeService,
+    cacheService,
   }) {
     super({ service, validator });
     this._songService = songService;
     this._storageService = storageService;
     this._userAlbumLikeService = userAlbumLikeService;
+    this._cacheService = cacheService;
   }
 
   async store(request, h) {
@@ -64,6 +71,7 @@ class AlbumHandler extends BaseHandler {
 
     await this._service.find(albumId);
     await this._userAlbumLikeService.store({ userId, albumId });
+    await this._cacheService.forget(config.redis.caches.albumLikes(albumId));
 
     return h.response(BaseHandler.successResponse(null, 'Menyukai album berhasil')).code(201);
   }
@@ -74,6 +82,7 @@ class AlbumHandler extends BaseHandler {
 
     await this._service.find(albumId);
     await this._userAlbumLikeService.delete({ userId, albumId });
+    await this._cacheService.forget(config.redis.caches.albumLikes(albumId));
 
     return h.response(BaseHandler.successResponse(null, 'Menyukai album dibatalkan'));
   }
@@ -81,9 +90,22 @@ class AlbumHandler extends BaseHandler {
   async getAlbumLikes(request, h) {
     const { id: albumId } = request.params;
 
-    const likeCount = await this._userAlbumLikeService.getLikeCount(albumId);
+    const result = await this._cacheService.remember(
+      config.redis.caches.albumLikes(albumId),
+      async () => {
+        const likeCount = await this._userAlbumLikeService.getLikeCount(albumId);
+        return likeCount;
+      },
+    );
 
-    return h.response(BaseHandler.successResponse({ likes: likeCount }));
+    const { fromCache, data: likes } = result;
+    const response = h.response(BaseHandler.successResponse({ likes }));
+
+    if (fromCache) {
+      response.header('X-Data-Source', 'cache');
+    }
+
+    return response;
   }
 }
 

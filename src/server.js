@@ -1,4 +1,3 @@
-const process = require('process');
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
@@ -7,6 +6,7 @@ const ClientError = require('./exceptions/ClientError');
 const ServerError = require('./exceptions/ServerError');
 const AuthenticationError = require('./exceptions/AuthenticationError');
 const BaseHandler = require('./api/BaseHandler');
+const config = require('./utils/config');
 
 // albums
 const albums = require('./api/albums');
@@ -48,10 +48,13 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportValidator = require('./validator/exports');
 
+// cache
+const CacheService = require('./services/redis/CacheService');
+
 (async () => {
   const server = Hapi.server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -68,12 +71,12 @@ const ExportValidator = require('./validator/exports');
 
   // define auth strategy using jwt
   server.auth.strategy('openmusic_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: config.jwt.accessTokenKey,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: config.jwt.accessTokenAge,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -84,6 +87,7 @@ const ExportValidator = require('./validator/exports');
   });
 
   // register app plugin
+  const cacheService = new CacheService();
   const authenticationService = new AuthenticationService();
   const albumService = new AlbumService();
   const storageService = new StorageService();
@@ -108,6 +112,7 @@ const ExportValidator = require('./validator/exports');
         songService,
         storageService,
         userAlbumLikeService,
+        cacheService,
         validator: AlbumValidaor,
       },
     },
@@ -168,7 +173,6 @@ const ExportValidator = require('./validator/exports');
     const { response } = request;
 
     if (response instanceof Error) {
-      console.log(response.message);
       if (response.output.statusCode === (new AuthenticationError().statusCode)) {
         return h.response(BaseHandler.failResponse(null, response.message))
           .code(response.output.statusCode);
