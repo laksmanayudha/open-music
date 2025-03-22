@@ -93,8 +93,8 @@ class AlbumHandler extends BaseHandler {
     const result = await this._cacheService.remember(
       config.redis.caches.albumLikes(albumId),
       async () => {
-        const likeCount = await this._userAlbumLikeService.getLikeCount(albumId);
-        return likeCount;
+        const data = await this._userAlbumLikeService.getLikeCount(albumId);
+        return data;
       },
     );
 

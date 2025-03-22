@@ -9,12 +9,14 @@ module.exports = {
     validator,
     playlistService,
     userService,
+    cacheService,
   }) => {
     const collaborationHandler = new CollaborationtHandler({
       service,
       validator,
       playlistService,
       userService,
+      cacheService,
     });
     server.route(routes(collaborationHandler));
   },

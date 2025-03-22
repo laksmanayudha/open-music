@@ -27,9 +27,7 @@ const config = {
   redis: {
     host: process.env.REDIS_SERVER,
     caches: {
-      albums: 'albums',
-      playlists: 'playlists',
-      songs: 'songs',
+      userPlaylists: (userId) => `user_playlists:${userId}`,
       playlistSongs: (playlistId) => `playlist_songs:${playlistId}`,
       albumLikes: (albumId) => `album_likes:${albumId}`,
     },

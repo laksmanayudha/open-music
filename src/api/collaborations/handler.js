@@ -1,3 +1,4 @@
+const config = require('../../utils/config');
 const BaseHandler = require('../BaseHandler');
 
 class CollaborationtHandler extends BaseHandler {
@@ -5,11 +6,13 @@ class CollaborationtHandler extends BaseHandler {
     service,
     validator,
     playlistService,
+    cacheService,
     userService,
   }) {
     super({ service, validator });
     this._playlistService = playlistService;
     this._userService = userService;
+    this._cacheService = cacheService;
   }
 
   async store(request, h) {
@@ -22,6 +25,8 @@ class CollaborationtHandler extends BaseHandler {
 
     const collaborationId = await this._service.storeIfNotExists({ playlistId, userId });
 
+    await this._cacheService.forget(config.redis.caches.userPlaylists(userId));
+
     return h.response(BaseHandler.successResponse({ collaborationId })).code(201);
   }
 
@@ -32,6 +37,8 @@ class CollaborationtHandler extends BaseHandler {
 
     await this._playlistService.verifyPlaylistOwner(playlistId, credentialId);
     await this._service.deleteByPlaylistIdAndUserId({ playlistId, userId });
+
+    await this._cacheService.forget(config.redis.caches.userPlaylists(userId));
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus kolaborasi'));
   }
