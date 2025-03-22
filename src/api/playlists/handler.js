@@ -23,7 +23,6 @@ class PlaylistHandler extends BaseHandler {
     const { id: credentialId } = request.auth.credentials;
 
     const playlistId = await this._service.store({ name, owner: credentialId });
-    await this._cacheService.forget(config.redis.caches.userPlaylists(credentialId));
 
     return h.response(BaseHandler.successResponse({ playlistId })).code(201);
   }
@@ -31,22 +30,9 @@ class PlaylistHandler extends BaseHandler {
   async getAll(request, h) {
     const { id: credentialId } = request.auth.credentials;
 
-    const result = await this._cacheService.remember(
-      config.redis.caches.userPlaylists(credentialId),
-      async () => {
-        const data = await this._service.getByOwnerOrCollaborator(credentialId);
-        return data;
-      },
-    );
+    const playlists = await this._service.getByOwnerOrCollaborator(credentialId);
 
-    const { fromCache, data: playlists } = result;
-    const response = h.response(BaseHandler.successResponse({ playlists }));
-
-    if (fromCache) {
-      response.header('X-Data-Source', 'cache');
-    }
-
-    return response;
+    return h.response(BaseHandler.successResponse({ playlists }));
   }
 
   async delete(request, h) {
@@ -55,7 +41,6 @@ class PlaylistHandler extends BaseHandler {
 
     await this._service.verifyPlaylistOwner(playlistId, credentialId);
     await this._service.delete(playlistId);
-    await this._cacheService.forget(config.redis.caches.userPlaylists(credentialId));
 
     return h.response(BaseHandler.successResponse(null, 'Berhasil menghapus playlist'));
   }
